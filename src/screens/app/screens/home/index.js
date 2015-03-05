@@ -1,6 +1,6 @@
 import React from 'react'
 import moment from 'moment'
-import {groupBy, forEach, map, reduce, pluck, mapValues, size, trunc} from 'lodash'
+import {groupBy, map, reduce, pluck, mapValues, size, chain} from 'lodash'
 
 let actions = {
 	logout() {
@@ -61,28 +61,35 @@ export default React.createClass({
 			return job
 		})
 
+		let sumKey = (coll, key) => reduce(pluck(coll, key), (acc, val) => acc + val, 0)
+
 		let months = groupBy(hours, 'month')
 		let jobs = mapValues(groupBy(hours, 'job'), jobs => {
 			return {
-				earned: reduce(pluck(jobs, 'earned'), sum, 0),
-				hours: reduce(pluck(jobs, 'hours'), sum, 0),
-				rate: (reduce(pluck(jobs, 'rate'), sum, 0) / size(jobs)),
+				earned: sumKey(jobs, 'earned'),
+				hours: sumKey(jobs, 'hours'),
+				rate: sumKey(jobs, 'rate') / size(jobs),
 			}
 		})
+		console.log(hours, months, jobs)
 
-		let hoursWorkedOverall = reduce(pluck(hours, 'hours'), sum, 0)
-		let amountEarnedOverall = reduce(pluck(hours, 'earned'), sum, 0)
+		// let hoursWorkedOverall = reduce(pluck(hours, 'hours'), sum, 0)
+		let hoursWorkedOverall = sumKey(hours, 'hours')
+		// let amountEarnedOverall = reduce(pluck(hours, 'earned'), sum, 0)
+		let amountEarnedOverall = sumKey(hours, 'earned')
+		console.log(hoursWorkedOverall, amountEarnedOverall)
 
-		let avgRate = reduce(pluck(jobs, 'rate'), sum, 0) / size(jobs)
+		// let avgRate = reduce(pluck(jobs, 'rate'), sum, 0) / size(jobs)
+		let avgRate = sumKey(jobs, 'rate') / size(jobs)
 		let maxHours = workAward / avgRate
 		let remainingHours = maxHours - hoursWorkedOverall
 
 		let now = moment()
 		let graduation = moment('05/13/2015', 'MM/DD/YYYY')
-		let hoursUntilGraduation = graduation.diff(now, 'weeks')
+		let weeksUntilGraduation = graduation.diff(now, 'weeks')
 
-		let hoursToWorkPerWeek = remainingHours / hoursUntilGraduation
-		console.log(maxHours, remainingHours, hoursUntilGraduation, hoursToWorkPerWeek)
+		let hoursToWorkPerWeek = remainingHours / weeksUntilGraduation
+		console.log(maxHours, remainingHours, weeksUntilGraduation, hoursToWorkPerWeek)
 
 		return <div>
 			<menu>
@@ -94,9 +101,8 @@ export default React.createClass({
 					<li>Hours
 						<ul className='months'>
 							{map(months, (monthData, month) => {
-								// console.log(month)
-								// let hoursWorkedThisMonth = reduce(monthData, (sum, job) => sum + job.hours, 0)
-								let hoursWorkedThisMonth = reduce(pluck(monthData, 'hours'), sum, 0)
+								// let hoursWorkedThisMonth = reduce(pluck(monthData, 'hours'), sum, 0)
+								let hoursWorkedThisMonth = sumKey(monthData, 'hours')
 								return <li key={month}>
 									<details>
 										<summary>
