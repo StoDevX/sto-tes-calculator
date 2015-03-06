@@ -21,7 +21,7 @@
     "lesswatch": "nodemon --exec 'npm run css' --ext less --watch src",
     "watch": "npm run watchify & npm run lesswatch; wait",
     "bs": "browser-sync start --server build --files 'build/*.css, build/*.js, build/*.html'",
-    "serve": "npm run bs & npm run watch; wait"
+    "start": "npm run bs & npm run watch; wait"
   },
   "repository": "hawkrives/sto-tes-calculator",
   "author": "Hawken MacKay Rives",
@@ -42,6 +42,9 @@
     "watchify": "^2.3.0"
   },
   "dependencies": {
+    "axios": "^0.5.0",
+    "bluebird": "^2.9.13",
+    "jsdom": "^4.0.1",
     "lodash": "^3.2.0",
     "moment": "^2.9.0",
     "react": "^0.12.2",
