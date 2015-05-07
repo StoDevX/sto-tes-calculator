@@ -1,40 +1,65 @@
 #!/usr/bin/env babel-node
 
-
 import Promise from 'bluebird'
 // import jsdom from 'jsdom'
 // import axios from 'axios'
-import fsLib from 'fs'
+// import fsLib from 'fs'
 // let axios = Promise.promisifyAll(axiosLib)
-let fs = Promise.promisifyAll(fsLib)
+// let fs = Promise.promisifyAll(fsLib)
+import {toArray} from 'lodash'
 
 const tes_base = 'https://www.stolaf.edu/apps/tes/'
 const login_url = 'https://www.stolaf.edu/apps/tes/index.cfm?fuseaction=login.processLogin'
-const login_error = 'http://www.stolaf.edu/apps/tes/index.cfm?fuseaction=login.login&error=1'
+const login_error = 'https://www.stolaf.edu/apps/tes/index.cfm?fuseaction=login.login&error=1'
 
 async function main() {
 	// let creds = await fs.readFileAsync('./credentials.txt', {encoding: 'utf-8'})
 
 	// const [user, pword] = creds.split('\n')
-	const [user, pword] = ['rives', 'imbackin']
-	// const credentials = {
-	// 	form: {
-	// 		username: user,
-	// 		password: pword,
-	// 	}
-	// }
-	// console.log(credentials)
+	const [user, pword] = ['rives', 'yetagain']
 
 	let formData = new FormData()
 	formData.append('username', user)
 	formData.append('password', pword)
 
-	let resp = await fetch(login_url, {
-		method: 'POST',
-		body: formData,
+	try {
+		await fetch(login_url, {
+			method: 'POST',
+			body: formData,
+		})
+	} catch(e) {
+		console.log(e)
+	}
+
+	let resp = await fetch(tes_base, {
+		method: 'GET'
 	})
 
-	console.log(resp.text())
+	let text = await resp.text()
+	window.text=text
+	console.log(text)
+
+	const block = document.createElement('div')
+	block.innerHTML = text
+
+	const table = block.querySelector('table')
+	const jobs_data = toArray(table.querySelectorAll('tr'))
+	let jobs = {}
+	for (let job of jobs_data) {
+		console.log(job)
+		const cells = toArray(job.querySelectorAll('td'))
+		console.log(cells)
+		const name = cells[0].textContent
+		jobs[name] = {
+			'name': cells[0].textContent,
+			'href': cells[0]['href'],
+			'boss': cells[1].textContent,
+			'start': cells[2].textContent,
+			'end': cells[3].textContent,
+			'rate': cells[4].textContent,
+		}
+	}
+	console.log(jobs)
 }
 
 window.run = main

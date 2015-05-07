@@ -5,19 +5,17 @@
   "description": "A time calculator for St. Olaf's TES",
   "main": "src/index.js",
   "config": {
-    "ify": "--debug -t [ babelify --experimental ] -e src/index.js",
+    "ify": "--debug -t [ babelify --optional es7.objectRestSpread --optional es7.asyncFunctions --optional es7.classProperties ] -e src/index.js",
     "less": "--source-map-map-inline --strict-math=on  --autoprefix src/style.less build/style.css"
   },
   "scripts": {
-    "test": "jest",
     "env": "env",
-    "prebuild": "mkdir -p build && npm run copy",
-    "copy": "cp src/index.html build",
+    "prebuild": "mkdir -p build",
     "js": "browserify $npm_package_config_ify | exorcist build/bundle.js.map > build/bundle.js",
     "css": "lessc $npm_package_config_less",
     "build": "npm run js & npm run css; wait",
-    "prewatch": "mkdir -p build && npm run copy",
-    "watchify": "watchify --verbose $npm_package_config_ify -o build/bundle.js",
+    "prewatch": "npm run prebuild",
+    "watchify": "watchify --verbose $npm_package_config_ify -o \"exorcist build/bundle.js.map > build/bundle.js\"",
     "lesswatch": "nodemon --exec 'npm run css' --ext less --watch src",
     "watch": "npm run watchify & npm run lesswatch; wait",
     "bs": "browser-sync start --server build --files 'build/*.css, build/*.js, build/*.html'",
@@ -26,29 +24,27 @@
   "repository": "hawkrives/sto-tes-calculator",
   "author": "Hawken MacKay Rives",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/hawkrives/sto-tes-calculator/issues"
-  },
   "homepage": "https://github.com/hawkrives/sto-tes-calculator",
   "devDependencies": {
-    "babelify": "^5.0.3",
-    "browser-sync": "^2.1.1",
-    "browserify": "^8.1.3",
-    "exorcist": "^0.1.6",
-    "less": "^2.4.0",
-    "less-plugin-autoprefix": "^1.3.0",
-    "nodemon": "^1.3.7",
-    "watchify": "^2.3.0"
+    "babelify": "6.0.2",
+    "browser-sync": "2.7.1",
+    "browserify": "10.1.1",
+    "exorcist": "0.3.0",
+    "less": "2.5.0",
+    "less-plugin-autoprefix": "1.4.1",
+    "nodemon": "1.3.7",
+    "watchify": "3.2.1"
   },
   "dependencies": {
-    "axios": "^0.5.0",
-    "bluebird": "^2.9.13",
-    "jsdom": "^4.0.1",
-    "lodash": "^3.2.0",
-    "moment": "^2.9.0",
-    "react": "^0.12.2",
-    "react-router": "^0.12.0",
-    "reflux": "^0.2.5",
-    "whatwg-fetch": "^0.7.0"
+    "axios": "0.5.4",
+    "bluebird": "2.9.25",
+    "humanize-plus": "1.5.0",
+    "jsdom": "5.3.0",
+    "lodash": "3.8.0",
+    "moment": "2.10.2",
+    "react": "0.13.2",
+    "react-router": "0.13.3",
+    "reflux": "0.2.7",
+    "whatwg-fetch": "0.8.1"
   }
 }

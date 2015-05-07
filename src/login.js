@@ -1,16 +1,21 @@
 import React from 'react'
 
-export default React.createClass({
-	getInitialState() {
-		return {
+export default class Login extends React.Component {
+	constructor(props) {
+		super(props)
+
+		this.state = {
 			username: '',
 			password: '',
 		}
-	},
+
+		this.handleTyping = this.handleTyping.bind(this)
+	}
 
 	handleLogin(ev) {
 		ev.preventDefault()
-	},
+	}
+
 	handleTyping(ev) {
 		let {type, value} = ev.target
 
@@ -18,7 +23,7 @@ export default React.createClass({
 			this.setState({username: value})
 		else if (type === 'password')
 			this.setState({password: value})
-	},
+	}
 
 	render() {
 		return <form className='login' onSubmit={this.handleLogin} onChange={this.handleTyping}>
@@ -34,4 +39,4 @@ export default React.createClass({
 			<input type='submit' value='Log In' />
 		</form>
 	}
-})
+}

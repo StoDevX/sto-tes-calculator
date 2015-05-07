@@ -4,10 +4,10 @@ import 'whatwg-fetch'
 import {run as runRouter, Route, NotFoundRoute, DefaultRoute} from 'react-router'
 import React from 'react'
 
-import App from './screens/app/'
-import Home from './screens/app/screens/home'
-import Login from './screens/app/screens/login'
-import NotFound from './screens/app/screens/notFound'
+import App from './app'
+import Home from './home'
+import Login from './login'
+import NotFound from './not-found'
 
 import get from '../get-tes.js'
 

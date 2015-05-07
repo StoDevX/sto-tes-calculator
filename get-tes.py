@@ -13,15 +13,16 @@ with open('./credentials.txt', 'r') as creds:
 	user, pword = creds.read().split()
 	credentials = {
 		'username': user,
-		'password': str(b64decode(bytes(pword, encoding='utf-8')))[2:-1]
+		'password': pword,
 	}
 
 # print(credentials)
 
 s = requests.Session()
 resp = s.post(login_url, data=credentials)
-if resp.url == login_url:
+if resp.url == login_url or resp.url == login_error:
 	print('uh oh – we didn\'t manage to log in!')
+	print(resp.text)
 	sys.exit(0)
 
 print('logged in successfully')
@@ -64,7 +65,7 @@ for name, job in jobs.items():
 		month_name = cells[0].get_text().split(' ')[0]
 		month_hours = cells[1].get_text().strip()
 		job['hours'][month_name] = month_hours
-	
+
 	del job['href']
-	
+
 print(list(jobs.values()))

@@ -1,8 +1,9 @@
 import React from 'react'
 import moment from 'moment'
+import {toFixed} from 'humanize-plus'
 import {groupBy, map, reduce, pluck, mapValues, size, chain} from 'lodash'
 
-let actions = {
+const actions = {
 	logout() {
 		console.log('logout')
 	},
@@ -11,9 +12,10 @@ let actions = {
 	}
 }
 
-let sum = (accumulator, value) => accumulator + value
+const sum = (accumulator, value) => accumulator + value
+const sumKey = (coll, key) => reduce(pluck(coll, key), sum, 0)
 
-export default React.createClass({
+export default class Home extends React.Component {
 	render() {
 		let workAward = 2500
 
@@ -54,29 +56,47 @@ export default React.createClass({
 				hours: 50.34,
 				month: 'February',
 			},
-           {
+			{
 				job: 'Assistant to the Macintosh Systems Administrator',
 				rate: 8.00,
 				hours: 16.25,
 				month: 'March',
 			},
-           {
+			{
 				job: 'Assistant to the Macintosh Systems Administrator',
 				rate: 8.00,
 				hours: 23.26,
 				month: 'April',
 			},
-           {
+			{
 				job: 'German Work Camp Booklet',
 				rate: 8.00,
 				hours: 4.5,
 				month: 'April',
 			},
-           {
+			{
 				job: 'Grader for Software Design',
 				rate: 8.00,
 				hours: 35.00,
 				month: 'April',
+			},
+			{
+				job: 'Assistant to the Macintosh Systems Administrator',
+				rate: 8.00,
+				hours: 8.02,
+				month: 'May',
+			},
+			{
+				job: 'German Work Camp Booklet',
+				rate: 8.00,
+				hours: 0,
+				month: 'May',
+			},
+			{
+				job: 'Grader for Software Design',
+				rate: 8.00,
+				hours: 1,
+				month: 'May',
 			},
 		]
 
@@ -85,35 +105,30 @@ export default React.createClass({
 			return job
 		})
 
-		let sumKey = (coll, key) => reduce(pluck(coll, key), (acc, val) => acc + val, 0)
-
 		let months = groupBy(hours, 'month')
-		let jobs = mapValues(groupBy(hours, 'job'), jobs => {
-			return {
+		let jobs = mapValues(groupBy(hours, 'job'), jobs => ({
 				earned: sumKey(jobs, 'earned'),
 				hours: sumKey(jobs, 'hours'),
 				rate: sumKey(jobs, 'rate') / size(jobs),
-			}
-		})
-		console.log(hours, months, jobs)
+		}))
+		// console.log(hours, months, jobs)
 
-		// let hoursWorkedOverall = reduce(pluck(hours, 'hours'), sum, 0)
 		let hoursWorkedOverall = sumKey(hours, 'hours')
-		// let amountEarnedOverall = reduce(pluck(hours, 'earned'), sum, 0)
 		let amountEarnedOverall = sumKey(hours, 'earned')
-		console.log(hoursWorkedOverall, amountEarnedOverall)
+		// console.log(hoursWorkedOverall, amountEarnedOverall)
 
-		// let avgRate = reduce(pluck(jobs, 'rate'), sum, 0) / size(jobs)
 		let avgRate = sumKey(jobs, 'rate') / size(jobs)
 		let maxHours = workAward / avgRate
 		let remainingHours = maxHours - hoursWorkedOverall
 
 		let now = moment()
 		let graduation = moment('05/13/2015', 'MM/DD/YYYY')
-		let weeksUntilGraduation = graduation.diff(now, 'weeks')
+
+		// this becomes 0 during the week leading up to finals
+		let weeksUntilGraduation = graduation.diff(now, 'weeks') || 1
 
 		let hoursToWorkPerWeek = remainingHours / weeksUntilGraduation
-		console.log(maxHours, remainingHours, weeksUntilGraduation, hoursToWorkPerWeek)
+		// console.log(maxHours, remainingHours, weeksUntilGraduation, hoursToWorkPerWeek)
 
 		return <div>
 			<menu>
@@ -125,16 +140,16 @@ export default React.createClass({
 					<li>Hours
 						<ul className='months'>
 							{map(months, (monthData, month) => {
-								// let hoursWorkedThisMonth = reduce(pluck(monthData, 'hours'), sum, 0)
 								let hoursWorkedThisMonth = sumKey(monthData, 'hours')
 								return <li key={month}>
 									<details>
 										<summary>
 											<span className='key'>{month}: </span>
-											{hoursWorkedThisMonth} hrs
+											{toFixed(hoursWorkedThisMonth, 2)} hrs
 										</summary>
 										<ul>
-											{map(monthData, ({job, hours}, i) => <li key={i}>{job}: {hours}</li>)}
+											{map(monthData, ({job, hours}, i) =>
+												<li key={i}>{job}: {toFixed(hours, 2)}</li>)}
 										</ul>
 									</details>
 								</li>
@@ -143,11 +158,11 @@ export default React.createClass({
 								<details>
 									<summary>
 										<span className='key'>Total: </span>
-										{hoursWorkedOverall} hrs
+										{toFixed(hoursWorkedOverall, 2)} hrs
 									</summary>
 									<ul>
 										{map(jobs, ({hours}, jobName) =>
-											<li key={jobName}>{jobName}: {hours}</li>)}
+											<li key={jobName}>{jobName}: {toFixed(hours, 2)}</li>)}
 									</ul>
 								</details>
 							</li>
@@ -160,10 +175,10 @@ export default React.createClass({
 						</ul>
 					</li>
 					<li>Work Award: ${workAward}</li>
-					<li>Hours Remaining: {remainingHours}</li>
-					<li>Hours Per Week: {hoursToWorkPerWeek}</li>
+					<li>Hours Remaining: {toFixed(remainingHours, 2)}</li>
+					<li>Hours Per Week: {toFixed(hoursToWorkPerWeek, 2)}</li>
 				</ul>
 			</main>
 		</div>
 	}
-})
+}
