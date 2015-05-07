@@ -15,7 +15,7 @@ let sum = (accumulator, value) => accumulator + value
 
 export default React.createClass({
 	render() {
-		let workAward = 2300
+		let workAward = 2500
 
 		let hours = [
 			{
@@ -51,9 +51,33 @@ export default React.createClass({
 			{
 				job: 'Assistant to the Macintosh Systems Administrator',
 				rate: 8.00,
-				hours: 41.18,
+				hours: 50.34,
 				month: 'February',
-			}
+			},
+           {
+				job: 'Assistant to the Macintosh Systems Administrator',
+				rate: 8.00,
+				hours: 16.25,
+				month: 'March',
+			},
+           {
+				job: 'Assistant to the Macintosh Systems Administrator',
+				rate: 8.00,
+				hours: 23.26,
+				month: 'April',
+			},
+           {
+				job: 'German Work Camp Booklet',
+				rate: 8.00,
+				hours: 4.5,
+				month: 'April',
+			},
+           {
+				job: 'Grader for Software Design',
+				rate: 8.00,
+				hours: 35.00,
+				month: 'April',
+			},
 		]
 
 		hours = map(hours, job => {
