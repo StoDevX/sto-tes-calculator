@@ -83,7 +83,7 @@ export default class Home extends React.Component {
 			{
 				job: 'Assistant to the Macintosh Systems Administrator',
 				rate: 8.00,
-				hours: 8.02,
+				hours: 10.09,
 				month: 'May',
 			},
 			{
@@ -95,7 +95,7 @@ export default class Home extends React.Component {
 			{
 				job: 'Grader for Software Design',
 				rate: 8.00,
-				hours: 1,
+				hours: 3.05,
 				month: 'May',
 			},
 		]
