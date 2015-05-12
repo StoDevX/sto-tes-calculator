@@ -1,133 +1,57 @@
 import React from 'react'
 import moment from 'moment'
 import {toFixed} from 'humanize-plus'
-import {groupBy, map, reduce, pluck, mapValues, size, chain} from 'lodash'
+import reduce from 'lodash/collection/reduce'
+import map from 'lodash/collection/map'
+import groupBy from 'lodash/collection/groupBy'
+import pluck from 'lodash/collection/pluck'
+import mapValues from 'lodash/object/mapValues'
+import size from 'lodash/collection/size'
+import values from 'lodash/object/values'
 
-const actions = {
-	logout() {
-		console.log('logout')
-	},
-	refresh() {
-		console.log('refresh')
-	}
-}
+import data from '../data.json'
+console.log(data)
+
+import actions from './actions'
 
 const sum = (accumulator, value) => accumulator + value
 const sumKey = (coll, key) => reduce(pluck(coll, key), sum, 0)
 
 export default class Home extends React.Component {
 	render() {
-		let workAward = 2500
+		const workAward = 2500
+		let jobs = data
 
-		let hours = [
-			{
-				job: 'Assistant to the Macintosh Systems Administrator',
-				rate: 8.00,
-				hours: 51.33,
-				month: 'September',
-			},
-			{
-				job: 'Assistant to the Macintosh Systems Administrator',
-				rate: 8.00,
-				hours: 36.00,
-				month: 'October',
-			},
-			{
-				job: 'Assistant to the Macintosh Systems Administrator',
-				rate: 8.00,
-				hours: 36.70,
-				month: 'November',
-			},
-			{
-				job: 'Assistant to the Macintosh Systems Administrator',
-				rate: 8.00,
-				hours: 10.25,
-				month: 'December',
-			},
-			{
-				job: 'Assistant to the Macintosh Systems Administrator',
-				rate: 8.00,
-				hours: 21.42,
-				month: 'January',
-			},
-			{
-				job: 'Assistant to the Macintosh Systems Administrator',
-				rate: 8.00,
-				hours: 50.34,
-				month: 'February',
-			},
-			{
-				job: 'Assistant to the Macintosh Systems Administrator',
-				rate: 8.00,
-				hours: 16.25,
-				month: 'March',
-			},
-			{
-				job: 'Assistant to the Macintosh Systems Administrator',
-				rate: 8.00,
-				hours: 23.26,
-				month: 'April',
-			},
-			{
-				job: 'German Work Camp Booklet',
-				rate: 8.00,
-				hours: 4.5,
-				month: 'April',
-			},
-			{
-				job: 'Grader for Software Design',
-				rate: 8.00,
-				hours: 35.00,
-				month: 'April',
-			},
-			{
-				job: 'Assistant to the Macintosh Systems Administrator',
-				rate: 8.00,
-				hours: 10.09,
-				month: 'May',
-			},
-			{
-				job: 'German Work Camp Booklet',
-				rate: 8.00,
-				hours: 0,
-				month: 'May',
-			},
-			{
-				job: 'Grader for Software Design',
-				rate: 8.00,
-				hours: 3.05,
-				month: 'May',
-			},
-		]
-
-		hours = map(hours, job => {
-			job.earned = job.rate * job.hours
+		jobs = map(jobs, (job) => {
+			job.worked = reduce(values(job.hours), sum)
+			job.earned = job.rate * job.worked
 			return job
 		})
 
-		let months = groupBy(hours, 'month')
-		let jobs = mapValues(groupBy(hours, 'job'), jobs => ({
-				earned: sumKey(jobs, 'earned'),
-				hours: sumKey(jobs, 'hours'),
-				rate: sumKey(jobs, 'rate') / size(jobs),
-		}))
-		// console.log(hours, months, jobs)
+		console.log(jobs)
 
-		let hoursWorkedOverall = sumKey(hours, 'hours')
-		let amountEarnedOverall = sumKey(hours, 'earned')
+		// let months = groupBy(jobs, 'month')
+		// jobs = mapValues(groupBy(hours, 'job'), jobs => ({
+		// 		earned: sumKey(jobs, 'earned'),
+		// 		hours: sumKey(jobs, 'hours'),
+		// 		rate: sumKey(jobs, 'rate') / size(jobs),
+		// }))
+
+		const hoursWorkedOverall = sumKey(jobs, 'worked')
+		const amountEarnedOverall = sumKey(jobs, 'earned')
 		// console.log(hoursWorkedOverall, amountEarnedOverall)
 
-		let avgRate = sumKey(jobs, 'rate') / size(jobs)
-		let maxHours = workAward / avgRate
-		let remainingHours = maxHours - hoursWorkedOverall
+		const avgRate = sumKey(jobs, 'rate') / size(jobs)
+		const maxHours = workAward / avgRate
+		const remainingHours = maxHours - hoursWorkedOverall
 
-		let now = moment()
-		let graduation = moment('05/13/2015', 'MM/DD/YYYY')
+		const now = moment()
+		const graduation = moment('05/20/2015', 'MM/DD/YYYY')
 
 		// this becomes 0 during the week leading up to finals
-		let weeksUntilGraduation = graduation.diff(now, 'weeks') || 1
+		const weeksUntilGraduation = graduation.diff(now, 'weeks') || 1
 
-		let hoursToWorkPerWeek = remainingHours / weeksUntilGraduation
+		const hoursToWorkPerWeek = remainingHours / weeksUntilGraduation
 		// console.log(maxHours, remainingHours, weeksUntilGraduation, hoursToWorkPerWeek)
 
 		return <div>
