@@ -1,0 +1,80 @@
+[
+	{
+		"job": "Assistant to the Macintosh Systems Administrator",
+		"rate": 8.00,
+		"hours": 51.33,
+		"month": "September"
+	},
+	{
+		"job": "Assistant to the Macintosh Systems Administrator",
+		"rate": 8.00,
+		"hours": 36.00,
+		"month": "October"
+	},
+	{
+		"job": "Assistant to the Macintosh Systems Administrator",
+		"rate": 8.00,
+		"hours": 36.70,
+		"month": "November"
+	},
+	{
+		"job": "Assistant to the Macintosh Systems Administrator",
+		"rate": 8.00,
+		"hours": 10.25,
+		"month": "December"
+	},
+	{
+		"job": "Assistant to the Macintosh Systems Administrator",
+		"rate": 8.00,
+		"hours": 21.42,
+		"month": "January"
+	},
+	{
+		"job": "Assistant to the Macintosh Systems Administrator",
+		"rate": 8.00,
+		"hours": 50.34,
+		"month": "February"
+	},
+	{
+		"job": "Assistant to the Macintosh Systems Administrator",
+		"rate": 8.00,
+		"hours": 16.25,
+		"month": "March"
+	},
+	{
+		"job": "Assistant to the Macintosh Systems Administrator",
+		"rate": 8.00,
+		"hours": 23.26,
+		"month": "April"
+	},
+	{
+		"job": "German Work Camp Booklet",
+		"rate": 8.00,
+		"hours": 4.5,
+		"month": "April"
+	},
+	{
+		"job": "Grader for Software Design",
+		"rate": 8.00,
+		"hours": 35.00,
+		"month": "April"
+	},
+	{
+		"job": "Assistant to the Macintosh Systems Administrator",
+		"rate": 8.00,
+		"hours": 12.76,
+		"month": "May"
+	},
+	{
+		"job": "German Work Camp Booklet",
+		"rate": 8.00,
+		"hours": 0,
+		"month": "May"
+	},
+	{
+		"job": "Grader for Software Design",
+		"rate": 8.00,
+		"hours": 6.88,
+		"month": "May",
+	}
+]

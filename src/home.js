@@ -63,7 +63,7 @@ export default class Home extends React.Component {
 				<ul>
 					<li>Hours
 						<ul className='months'>
-							{map(months, (monthData, month) => {
+							{map(jobs, (monthData, month) => {
 								let hoursWorkedThisMonth = sumKey(monthData, 'hours')
 								return <li key={month}>
 									<details>
