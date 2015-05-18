@@ -23,7 +23,7 @@
   },
   "repository": "hawkrives/sto-tes-calculator",
   "author": "Hawken MacKay Rives",
-  "license": "MIT",
+  "license": "AGPL",
   "homepage": "https://github.com/hawkrives/sto-tes-calculator",
   "devDependencies": {
     "babelify": "6.1.1",
