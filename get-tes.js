@@ -12,6 +12,14 @@ const tes_base = 'https://www.stolaf.edu/apps/tes/'
 const login_url = 'https://www.stolaf.edu/apps/tes/index.cfm?fuseaction=login.processLogin'
 const login_error = 'https://www.stolaf.edu/apps/tes/index.cfm?fuseaction=login.login&error=1'
 
+function reqListener() {
+	console.log(this.responseText)
+}
+
+function reqError(err) {
+	console.error('Fetch Error:', err);
+}
+
 async function main() {
 	// let creds = await fs.readFileAsync('./credentials.txt', {encoding: 'utf-8'})
 
@@ -22,44 +30,52 @@ async function main() {
 	formData.append('username', user)
 	formData.append('password', pword)
 
-	try {
-		await fetch(login_url, {
-			method: 'POST',
-			body: formData,
-		})
-	} catch(e) {
-		console.log(e)
-	}
+	const req = new XMLHttpRequest()
+	req.onload = onload
+	req.onerror = onerror
+	req.open('POST', login_url)
+	req.send(formData)
+	// try {
+	// 	await fetch(login_url, {
+	// 		method: 'POST',
+	// 		body: formData,
+	// 		credentials: 'same-origin',
+	// 		redirect: 'manual',
+	// 	})
+	// } catch(e) {
+	// 	console.error(e)
+	// }
 
-	let resp = await fetch(tes_base, {
-		method: 'GET'
-	})
+	// let resp = await fetch(tes_base, {
+	// 	method: 'GET',
+	// 	credentials: 'same-origin',
+	// })
 
-	let text = await resp.text()
-	window.text=text
-	console.log(text)
+	// let text = await resp.text()
+	// window.text = text
+	// console.log(text)
 
-	const block = document.createElement('div')
-	block.innerHTML = text
+	// const block = document.createElement('div')
+	// block.innerHTML = text
 
-	const table = block.querySelector('table')
-	const jobs_data = toArray(table.querySelectorAll('tr'))
-	let jobs = {}
-	for (let job of jobs_data) {
-		console.log(job)
-		const cells = toArray(job.querySelectorAll('td'))
-		console.log(cells)
-		const name = cells[0].textContent
-		jobs[name] = {
-			'name': cells[0].textContent,
-			'href': cells[0]['href'],
-			'boss': cells[1].textContent,
-			'start': cells[2].textContent,
-			'end': cells[3].textContent,
-			'rate': cells[4].textContent,
-		}
-	}
-	console.log(jobs)
+	// const table = block.querySelector('table')
+	// const jobs_data = toArray(table.querySelectorAll('tr'))
+	// let jobs = {}
+	// for (let job of jobs_data) {
+	// 	console.log(job)
+	// 	const cells = toArray(job.querySelectorAll('td'))
+	// 	console.log(cells)
+	// 	const name = cells[0].textContent
+	// 	jobs[name] = {
+	// 		'name': cells[0].textContent,
+	// 		'href': cells[0]['href'],
+	// 		'boss': cells[1].textContent,
+	// 		'start': cells[2].textContent,
+	// 		'end': cells[3].textContent,
+	// 		'rate': cells[4].textContent,
+	// 	}
+	// }
+	// console.log(jobs)
 }
 
 window.run = main
