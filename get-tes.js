@@ -1,135 +1,151 @@
 #!/usr/bin/env babel-node
 
 import Promise from 'bluebird'
-// import jsdom from 'jsdom'
-// import axios from 'axios'
-// import fsLib from 'fs'
-// let axios = Promise.promisifyAll(axiosLib)
-// let fs = Promise.promisifyAll(fsLib)
-import {toArray} from 'lodash'
+Promise.config({
+	// Enable warnings.
+	warnings: true,
+	// Enable long stack traces.
+	longStackTraces: true,
+	// Enable cancellation.
+	cancellation: true,
+})
+
+import 'isomorphic-fetch'
+import FormData from 'form-data'
+import cheerio from 'cheerio'
+import values from 'lodash/object/values'
+import zipObject from 'lodash/array/zipObject'
+import pairs from 'lodash/object/pairs'
 
 const tes_base = 'https://www.stolaf.edu/apps/tes/'
 const login_url = 'https://www.stolaf.edu/apps/tes/index.cfm?fuseaction=login.processLogin'
 const login_error = 'https://www.stolaf.edu/apps/tes/index.cfm?fuseaction=login.login&error=1'
 
-function reqListener() {
-	console.log(this.responseText)
+function getPage(u, p) {
+	const formData = new FormData()
+	formData.append('username', u)
+	formData.append('password', p)
+	formData.append('username_required', 'You must enter a username.')
+	formData.append('password_required', 'You must enter a password.')
+	formData.append('Submit', 'Login')
+
+	return (url, opts) => fetch(url, {
+		method: 'POST',
+		body: formData,
+		credentials: 'include',
+	 	...opts,
+	 })
+	.then(r => r.text())
 }
 
-function reqError(err) {
-	console.error('Fetch Error:', err);
+async function checkLogin(get) {
+	try {
+		await get(login_url, {redirect: 'manual'})
+	}
+	catch(e) {
+		console.error(e)
+		console.error('uh oh – we didn\'t manage to log in!')
+		return false
+	}
+
+	console.log('logged in successfully')
+	return true
 }
 
-async function main() {
-	// let creds = await fs.readFileAsync('./credentials.txt', {encoding: 'utf-8'})
+async function getJobs(get) {
+	const response = await get(tes_base)
 
-	// const [user, pword] = creds.split('\n')
-	const [user, pword] = ['rives', 'yetagain']
+	console.log(response)
 
-	let formData = new FormData()
-	formData.append('username', user)
-	formData.append('password', pword)
+	return
 
-	const req = new XMLHttpRequest()
-	req.onload = onload
-	req.onerror = onerror
-	req.open('POST', login_url)
-	req.send(formData)
-	// try {
-	// 	await fetch(login_url, {
-	// 		method: 'POST',
-	// 		body: formData,
-	// 		credentials: 'same-origin',
-	// 		redirect: 'manual',
-	// 	})
-	// } catch(e) {
-	// 	console.error(e)
-	// }
+	const $ = cheerio.load(response)
+	const table = $('#hor-minimalist-d')
 
-	// let resp = await fetch(tes_base, {
-	// 	method: 'GET',
-	// 	credentials: 'same-origin',
-	// })
+	const job_data = table.find('tr')//.map(row => row.find('td'))
 
-	// let text = await resp.text()
-	// window.text = text
-	// console.log(text)
+	console.log(job_data)
+	const jobs_list = []
+	job_data.each((i, job) => {
+		jobs_list.push({
+			name: job[0].text(),
+			href: job[0].find('a')[0].attr('href'),
+			boss: job[1].text(),
+			start: job[2].text(),
+			end: job[3].text(),
+			rate: Number(job[4].text().replace('$', '')),
+		})
+	})
 
-	// const block = document.createElement('div')
-	// block.innerHTML = text
+	console.log('jobs_list', jobs_list)
 
-	// const table = block.querySelector('table')
-	// const jobs_data = toArray(table.querySelectorAll('tr'))
-	// let jobs = {}
-	// for (let job of jobs_data) {
-	// 	console.log(job)
-	// 	const cells = toArray(job.querySelectorAll('td'))
-	// 	console.log(cells)
-	// 	const name = cells[0].textContent
-	// 	jobs[name] = {
-	// 		'name': cells[0].textContent,
-	// 		'href': cells[0]['href'],
-	// 		'boss': cells[1].textContent,
-	// 		'start': cells[2].textContent,
-	// 		'end': cells[3].textContent,
-	// 		'rate': cells[4].textContent,
-	// 	}
-	// }
-	// console.log(jobs)
+	const jobs = zipObject(jobs_list.map(job => [job.name, job]))
+
+	return jobs
 }
 
-window.run = main
-// main()
-
-/*
-s = requests.Session()
-resp = s.post(login_url, data=credentials)
-if resp.url == login_url:
-	print('uh oh – we didn\'t manage to log in!')
-	sys.exit(0)
-
-print('logged in successfully')
-
-soup = BS(resp.text)
-table = soup.find(id='hor-minimalist-d')
-job_data = [job_data.find_all('td') for job_data in table.find_all('tr')]
-
-jobs_list = [{
-	'name': job[0].get_text(),
-	'href': job[0].a['href'],
-	'boss': job[1].get_text(),
-	'start': job[2].get_text(),
-	'end': job[3].get_text(),
-	'rate': job[4].get_text(),
-} for job in job_data]
-
-jobs = {job['name']: job for job in jobs_list}
-
-for name, job in jobs.items():
-	hours_page = s.get(tes_base + job['href'])
-	hours_soup = BS(hours_page.text)
-	current, prior = hours_soup.select('.entry-content > table')
+async function getJobHours(get, jobData) {
+	console.log('jobData', jobData)
+	const hours_page = await get(`${tes_base}${jobData.attr('href')}`)
+	const $ = cheerio.load(hours_page)
+	const [current, prior] = $('.entry-content > table')
 	// print(stuff)
 
-	job['hours'] = {}
+	jobData.hours = {}
 
 	// get current month's hours
-	current_months = current.find_all('tr')[1:]
-	for month in current_months:
-		cells = month.find_all('td')
-		month_name = cells[0].get_text().split(' ')[0]
-		month_hours = cells[2].get_text().strip()
-		job['hours'][month_name] = month_hours
+	const current_months = current.find('tr').slice(1)
+	for (const month of current_months) {
+		const cells = month.find('td')
+		const month_name = cells[0].text().split(' ')[0]
+		const month_hours = Number(cells[2].text().strip())
+		jobData.hours[month_name] = month_hours
+	}
 
 	// get previous hours
-	prior_months = prior.find_all('tr')[1:]
-	for month in prior_months:
-		cells = month.find_all('td')
-		month_name = cells[0].get_text().split(' ')[0]
-		month_hours = cells[1].get_text().strip()
-		job['hours'][month_name] = month_hours
+	const prior_months = prior.find_all('tr').slice(1)
+	for (const month of prior_months) {
+		const cells = month.find('td')
+		const month_name = cells[0].text().split(' ')[0]
+		const month_hours = Number(cells[2].text().strip())
+		jobData.hours[month_name] = month_hours
+	}
 
-	del job['href']
+	delete jobData['href']
+}
 
-print(list(jobs.values()))
-*/
+async function getData({username=null, password=null}) {
+	const get = getPage(username, password)
+
+	await checkLogin(get)
+
+	let jobs = {}
+	try {
+		jobs = await getJobs(get)
+		return
+	}
+	catch (err) {
+		console.error(err)
+		return []
+	}
+
+	console.log('jobs', jobs)
+
+	await Promise.all(pairs(jobs).map(([_, data]) => {
+		const result = getJobHours(get, data)
+		console.log(data)
+		console.log(result)
+		return result
+	}))
+
+	return values(jobs)
+}
+
+getData({username: 'rives', password: 'nfoofoon'})
+	.then(data => JSON.stringify(data, null, 4))
+	.then(v => console.log(v))
+	.catch(err => console.error('[getData]', err))
+
+process.on('unhandledRejection', function(reason, p) {
+	console.log("Unhandled Rejection at: Promise ", p, " reason: ", reason);
+});
