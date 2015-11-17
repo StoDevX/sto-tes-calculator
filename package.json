@@ -16,11 +16,8 @@
     "build": "npm run js & npm run css; wait",
     "prewatch": "npm run prebuild",
     "watchify": "watchify --verbose $npm_package_config_ify -o \"exorcist build/bundle.js.map > build/bundle.js\"",
-    "lesswatch": "nodemon --exec 'npm run css' --ext less --watch src",
-    "watch": "npm run watchify & npm run lesswatch; wait",
-    "bs": "browser-sync start --server build --files 'build/*.css, build/*.js, build/*.html'",
     "start": "npm run bs & npm run watch; wait",
-    "sample": "babel-node --stage=0 get-tes.js"
+    "sample": "browserify -t babelify -e get-tes.js -o tes.js"
   },
   "repository": "hawkrives/sto-tes-calculator",
   "author": "Hawken MacKay Rives",
@@ -43,7 +40,6 @@
     "exorcist": "0.4.0",
     "less": "2.5.3",
     "less-plugin-autoprefix": "1.5.1",
-    "nodemon": "1.8.1",
     "watchify": "3.6.1"
   }
 }
