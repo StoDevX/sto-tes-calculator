@@ -26,9 +26,9 @@ if resp.url == login_url or resp.url == login_error:
     print(resp.text, file=sys.stderr)
     sys.exit(0)
 
-print('logged in successfully', file=sys.stderr)
+# print('logged in successfully', file=sys.stderr)
 
-soup = BS(resp.text)
+soup = BS(resp.text, 'html.parser')
 table = soup.find(id='hor-minimalist-d')
 job_data = [job_data.find_all('td') for job_data in table.find_all('tr')]
 
@@ -45,7 +45,7 @@ jobs = {job['job']: job for job in jobs_list}
 
 for name, data in jobs.items():
     hours_page = s.get(tes_base + data['href'])
-    hours_soup = BS(hours_page.text)
+    hours_soup = BS(hours_page.text, 'html.parser')
     current, prior = hours_soup.select('.entry-content > table')
     # print(stuff)
 
