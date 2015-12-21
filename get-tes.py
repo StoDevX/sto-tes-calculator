@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
 import requests
-from base64 import b64decode
 import sys
 import json
-from bs4 import BeautifulSoup as BS
+from bs4 import BeautifulSoup as bs
 
 
 def get_data(username, password):
@@ -23,7 +22,7 @@ def get_data(username, password):
 
     # print('logged in successfully', file=sys.stderr)
 
-    soup = BS(resp.text, 'html.parser')
+    soup = bs(resp.text, 'html.parser')
     table = soup.find(id='hor-minimalist-d')
     job_data = [job_data.find_all('td') for job_data in table.find_all('tr')]
 
@@ -40,7 +39,7 @@ def get_data(username, password):
 
     for name, data in jobs.items():
         hours_page = s.get(tes_base + data['href'])
-        hours_soup = BS(hours_page.text, 'html.parser')
+        hours_soup = bs(hours_page.text, 'html.parser')
         current, prior = hours_soup.select('.entry-content > table')
         # print(stuff)
 
