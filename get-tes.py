@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # coding=utf-8
 
+import re
 import os
 import sys
-import inspect
 import json
 from datetime import datetime
 from urlparse import parse_qs
@@ -22,6 +22,37 @@ MONTHS = [
 
 def sort_month_names(month_name):
     return MONTHS.index(month_name.lower())
+
+
+DATE_REGEX = re.compile(ur'(?P<month>[A-Z]{3}) (?P<day>\d+), (?P<year>\d{4})', re.IGNORECASE)
+SHORT_MONTH_NAMES = [
+    'jan',
+    'feb',
+    'mar',
+    'apr',
+    'may',
+    'jun',
+    'jul',
+    'aug',
+    'sep',
+    'oct',
+    'nov',
+    'dec',
+]
+
+
+def parse_date(tes_date_string):
+    # example: Sep 10, 2015
+    # example: May 24, 2016
+    match = DATE_REGEX.match(tes_date_string)
+    if not match:
+        raise ValueError('Invalid date assumptions!')
+    groups = match.groupdict()
+    year = int(groups['year'])
+    # the +1 is because it wants months between 1..12
+    month = SHORT_MONTH_NAMES.index(groups['month'].lower()) + 1
+    day = int(groups['day'])
+    return datetime(year, month, day)
 
 
 def get_jobs(username, password):
@@ -46,8 +77,8 @@ def get_jobs(username, password):
         'job': job[0].get_text(),
         'href': job[0].a['href'],
         'boss': job[1].get_text(),
-        'start': job[2].get_text(),
-        'end': job[3].get_text(),
+        'start': parse_date(job[2].get_text()),
+        'end': parse_date(job[3].get_text()),
         'rate': float(job[4].get_text()[1:]),
     } for job in job_data]
 
@@ -93,27 +124,17 @@ def process_jobs(jobs):
     hours_worked_overall = sum([j['worked'] for j in jobs])
     amount_earned_overall = sum([j['earned'] for j in jobs])
 
-    # print('hours_worked_overall', hours_worked_overall)
-    # print('amount_earned_overall', amount_earned_overall)
-
     avg_rate = sum([j['rate'] for j in jobs]) / len(jobs)
     max_hours = work_award / avg_rate
     remaining_hours = max_hours - hours_worked_overall
 
-    # print('avg_rate', avg_rate)
-    # print('max_hours', max_hours)
-    # print('remaining_hours', remaining_hours)
-
     now = datetime.today()
-    graduation = datetime(2016, 5, 29)
+    end_date = max([j['end'] for j in jobs])
 
-    timediff = graduation - now
-    weeks_until_graduation = timediff.days / 7
+    timediff = end_date - now
+    weeks_until_work_end = timediff.days / 7
 
-    hours_to_work_per_week = remaining_hours / weeks_until_graduation
-
-    # print('weeks_until_graduation', weeks_until_graduation)
-    # print('hours_to_work_per_week', hours_to_work_per_week)
+    hours_to_work_per_week = remaining_hours / weeks_until_work_end
 
     grouped_by_month = OrderedDict({})
     for job in jobs:
@@ -122,67 +143,106 @@ def process_jobs(jobs):
                 grouped_by_month[monthName] = {}
             grouped_by_month[monthName][job['job']] = job['hours'][monthName]
 
-    # print(grouped_by_month)
+    for monthName in grouped_by_month:
+        grouped_by_month[monthName]['_total'] = sum(grouped_by_month[monthName].values())
 
-    print '<main>'
-    print '<ul>'
-    print '<li>'
-    print 'Hours:'
+    data = {
+        'hours_to_work_per_week': hours_to_work_per_week,
+        'amount_earned_overall': amount_earned_overall,
+        'weeks_until_work_end': weeks_until_work_end,
+        'hours_worked_overall': hours_worked_overall,
+        'grouped_by_month': grouped_by_month,
+        'remaining_hours': remaining_hours,
+        'work_award': work_award,
+        'max_hours': max_hours,
+        'jobs': jobs,
+    }
 
-    print '<ul class="months">'
+    return data
+
+
+def to_html(data):
+    hours_to_work_per_week = data['hours_to_work_per_week']
+    amount_earned_overall = data['amount_earned_overall']
+    hours_worked_overall = data['hours_worked_overall']
+    weeks_until_work_end = data['weeks_until_work_end']
+    grouped_by_month = data['grouped_by_month']
+    remaining_hours = data['remaining_hours']
+    work_award = data['work_award']
+    max_hours = data['max_hours']
+    jobs = data['jobs']
+
+    html = ''
+    newline = '\n'
+
+    html += '<main>' + newline
+    html += '<ul>' + newline
+    html += '<li>' + newline
+    html += 'Hours:' + newline
+
+    html += '<ul class="months">' + newline
     for month, monthData in grouped_by_month.items():
-        worked_this_month = sum(monthData.values())
-        print '<li>'
-        print '<details>'
-        print '<summary><x-key>%s:</x-key> %.2f hours</summary>' % (month, worked_this_month)
-        print '<ul>'
-        for n, hours in monthData.items():
-            print '<li>%s: %.2f hours</li>' % (n, hours)
-        print '</ul>'
-        print '</details>'
-        print '</li>'
+        html += '<li>' + newline
+        html += '<details>' + newline
+        html += '<summary><x-key>%s:</x-key> %.2f hours</summary>\n' % (month, monthData['_total'])
+        html += '<ul>' + newline
+        for job_name, hours in monthData.items():
+            if job_name[0] != '_':
+                html += '<li>%s: %.2f hours</li>\n' % (job_name, hours)
+        html += '</ul>' + newline
+        html += '</details>' + newline
+        html += '</li>' + newline
 
-    print '<li>'
-    print '<details>'
-    print '<summary><x-key>Total:</x-key> %.2f hours</summary>' % hours_worked_overall
-    print '<ul>'
+    html += '<li>' + newline
+    html += '<details>' + newline
+    html += '<summary><x-key>Total:</x-key> %.2f hours</summary>\n' % hours_worked_overall
+    html += '<ul>' + newline
     for job in jobs:
-        print '<li>%s: %.2f hours</li>' % (job['job'], sum(job['hours'].values()))
-    print '</ul>'
-    print '</details>'
-    print '</li>'
+        html += '<li>%s: %.2f hours</li>\n' % (job['job'], sum(job['hours'].values()))
+    html += '</ul>' + newline
+    html += '</details>' + newline
+    html += '</li>' + newline
 
-    print '</ul>'
-    print '</li>'
+    html += '</ul>' + newline
+    html += '</li>' + newline
 
-    print '<li>'
-    print 'Rates:'
-    print '<ul class="months">'
+    html += '<li>' + newline
+    html += 'Rates:' + newline
+    html += '<ul class="months">' + newline
     for job in jobs:
-        print '<li>%s: $%.2f / hour</li>' % (job['job'], job['rate'])
-    print '</ul>'
-    print '</li>'
+        html += '<li>%s: $%.2f / hour</li>' % (job['job'], job['rate']) + newline
+    html += '</ul>' + newline
+    html += '</li>' + newline
 
-    print '<li>Work Award: $%d</li>' % work_award
-    print '<li>Weeks Until Graduation: %d weeks (including breaks)</li>' % weeks_until_graduation
-    print '<li>Total Hours Needed: %.2f hours</li>' % max_hours
-    print '<li>Hours Remaining: %.2f hours</li>' % remaining_hours
-    print '<li>Hours Per Week: %.2f hours</li>' % hours_to_work_per_week
+    html += '<li>Work Award: $%d</li>\n' % work_award
+    html += '<li>Amount Earned: $%d</li>\n' % amount_earned_overall
+    html += '<li>Weeks Until End of Jobs: %d weeks (including breaks)</li>\n' % weeks_until_work_end
+    html += '<li>Total Hours Needed: %.2f hours</li>\n' % max_hours
+    html += '<li>Hours Remaining: %.2f hours</li>\n' % remaining_hours
+    html += '<li>Hours Per Week: %.2f hours</li>\n' % hours_to_work_per_week
 
-    print '</ul>'
-    print '</main>'
+    html += '</ul>' + newline
+    html += '</main>' + newline
 
-    return jobs
+    return html
 
 
-def print_jobs(jobs):
-    return json.dumps(list(jobs),
+def date_handler(obj):
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    else:
+        return None
+
+
+def to_json(data):
+    return json.dumps(data,
+                      default=date_handler,
                       sort_keys=True,
                       separators=(',', ': '),
                       indent=4)
 
 
-if __name__ == '__main__':
+def cgi_bin_main():
     data = sys.stdin.read()
     # print data
 
@@ -223,7 +283,9 @@ if __name__ == '__main__':
         print '''
             <form action="" method="POST">
                 <input placeholder="username" name="username" type="text">
+                <br>
                 <input placeholder="password" name="password" type="password">
+                <br>
                 <input type="submit" value="Log in">
             </form>
         '''
@@ -233,4 +295,30 @@ if __name__ == '__main__':
     username = parsed_data['username'][0].strip()
     password = parsed_data['password'][0].strip()
 
-    process_jobs(get_jobs(username, password))
+    print to_html(process_jobs(get_jobs(username, password)))
+
+
+def cli_main():
+    data = sys.stdin.read()
+
+    if not data:
+        print 'Usage: ./get-tes.py < credentials.txt'
+        print '"credentials.txt" should be a username and password, on separate lines'
+        sys.exit(1)
+
+    parsed_data = data.split('\n')
+    username = parsed_data[0].strip()
+    password = parsed_data[1].strip()
+
+    if not username or not password:
+        print 'Please provide both a username and a password'
+        sys.exit(1)
+
+    print to_json(process_jobs(get_jobs(username, password)))
+
+
+if __name__ == '__main__' and 'SERVER_SOFTWARE' in os.environ:
+    cgi_bin_main()
+
+elif __name__ == '__main__':
+    cli_main()
