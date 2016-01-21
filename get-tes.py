@@ -298,7 +298,16 @@ def cgi_bin_main():
     username = parsed_data['username'][0].strip()
     password = parsed_data['password'][0].strip()
     if 'work-award' in parsed_data:
-        work_award = int(parsed_data['work_award'][0].strip() or 0)
+        work_award = int(parsed_data['work-award'][0].strip() or 0)
+
+    print '''
+        <form action="" method="POST">
+            <input value="%s" placeholder="username" name="username" type="hidden">
+            <input value="%s" placeholder="password" name="password" type="hidden">
+            Work award: <input value="%d" placeholder="Work Award" name="work-award" type="number">
+            <input type="submit" value="Recalculate">
+        </form>
+    ''' % (username, password, work_award)
 
     print to_html(process_jobs(get_jobs(username, password), work_award))
 
