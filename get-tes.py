@@ -114,8 +114,9 @@ def get_jobs(username, password):
     return jobs.values()
 
 
-def process_jobs(jobs):
-    work_award = 2300
+def process_jobs(jobs, work_award):
+    if not work_award:
+        work_award = 2300
 
     for job in jobs:
         job['worked'] = sum(job['hours'].values())
@@ -286,6 +287,8 @@ def cgi_bin_main():
                 <br>
                 <input placeholder="password" name="password" type="password">
                 <br>
+                <input value="2300" placeholder="Work Award" name="work-award" type="number">
+                <br>
                 <input type="submit" value="Log in">
             </form>
         '''
@@ -294,8 +297,10 @@ def cgi_bin_main():
     parsed_data = parse_qs(data)
     username = parsed_data['username'][0].strip()
     password = parsed_data['password'][0].strip()
+    if 'work-award' in parsed_data:
+        work_award = int(parsed_data['work_award'][0].strip() or 0)
 
-    print to_html(process_jobs(get_jobs(username, password)))
+    print to_html(process_jobs(get_jobs(username, password), work_award))
 
 
 def cli_main():
@@ -304,17 +309,20 @@ def cli_main():
     if not data:
         print 'Usage: ./get-tes.py < credentials.txt'
         print '"credentials.txt" should be a username and password, on separate lines'
+        print 'It can also specify a work award, as a plain integer on a third line'
         sys.exit(1)
 
     parsed_data = data.split('\n')
     username = parsed_data[0].strip()
     password = parsed_data[1].strip()
+    if len(parsed_data) > 2:
+        work_award = int(parsed_data[2].strip() or 0)
 
     if not username or not password:
         print 'Please provide both a username and a password'
         sys.exit(1)
 
-    print to_json(process_jobs(get_jobs(username, password)))
+    print to_json(process_jobs(get_jobs(username, password), work_award))
 
 
 if __name__ == '__main__' and 'SERVER_SOFTWARE' in os.environ:
