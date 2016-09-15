@@ -28,7 +28,7 @@ def extract_timecard_entry_from_row(row):
     date = cells[0].get_text().strip()
     entry_cells = cells[1:7]
 
-    entries = [(cell.get('value', cell.get_text()).strip() for cell in entry_cells]
+    entries = [cell.get('value', cell.get_text()).strip() for cell in entry_cells]
     paired_entries = list(zip(entries[0::2], entries[1::2]))
     # only return the entries with at least time entered
     paired_entries = [p for p in paired_entries if any(p)]
@@ -43,7 +43,7 @@ def extract_timecard_entry_from_row_pair(row_pair):
     date = row0_cells[0].get_text().strip()
     entry_cells = row0_cells[1:7] + row1_cells[1:7]
 
-    entries = [(cell.get('value', cell.get_text()).strip() for cell in entry_cells]
+    entries = [cell.get('value', cell.get_text()).strip() for cell in entry_cells]
     paired_entries = list(zip(entries[0::2], entries[1::2]))
     # only return the entries with at least time entered
     paired_entries = [p for p in paired_entries if any(p)]
