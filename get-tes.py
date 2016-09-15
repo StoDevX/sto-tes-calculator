@@ -6,7 +6,7 @@ import os
 import sys
 import json
 from datetime import datetime
-from urlparse import parse_qs
+from urllib.parse import parse_qs
 
 from ordereddict import OrderedDict
 import requests
@@ -24,7 +24,7 @@ def sort_month_names(month_name):
     return MONTHS.index(month_name.lower())
 
 
-DATE_REGEX = re.compile(ur'(?P<month>[A-Z]{3}) (?P<day>\d+), (?P<year>\d{4})', re.IGNORECASE)
+DATE_REGEX = re.compile(r'(?P<month>[A-Z]{3}) (?P<day>\d+), (?P<year>\d{4})', re.IGNORECASE)
 SHORT_MONTH_NAMES = [
     'jan',
     'feb',
@@ -247,11 +247,11 @@ def cgi_bin_main():
     data = sys.stdin.read()
     # print data
 
-    print 'Content-type: text/html; charset=UTF-8\n'
+    print('Content-type: text/html; charset=UTF-8\n')
 
-    print '<meta name="viewport" content="width=device-width">'
-    print '<style>'
-    print '''
+    print('<meta name="viewport" content="width=device-width">')
+    print('<style>')
+    print('''
         body {
             font-family: sans-serif;
             max-width: 40em;
@@ -276,12 +276,12 @@ def cgi_bin_main():
         main {
             margin: 0 1em;
         }
-    '''
-    print '</style>'
-    print '<title>Unofficial TES Tool</title>'
+    ''')
+    print('</style>')
+    print('<title>Unofficial TES Tool</title>')
 
     if 'username' not in data or 'password' not in data:
-        print '''
+        print('''
             <form action="" method="POST">
                 <input placeholder="username" name="username" type="text">
                 <br>
@@ -291,7 +291,7 @@ def cgi_bin_main():
                 <br>
                 <input type="submit" value="Log in">
             </form>
-        '''
+        ''')
         sys.exit(0)
 
     parsed_data = parse_qs(data)
@@ -300,25 +300,25 @@ def cgi_bin_main():
     if 'work-award' in parsed_data:
         work_award = int(parsed_data['work-award'][0].strip() or 0)
 
-    print '''
+    print('''
         <form action="" method="POST">
             <input value="%s" placeholder="username" name="username" type="hidden">
             <input value="%s" placeholder="password" name="password" type="hidden">
             Work award: <input value="%d" placeholder="Work Award" name="work-award" type="number">
             <input type="submit" value="Recalculate">
         </form>
-    ''' % (username, password, work_award)
+    ''' % (username, password, work_award))
 
-    print to_html(process_jobs(get_jobs(username, password), work_award))
+    print(to_html(process_jobs(get_jobs(username, password), work_award)))
 
 
 def cli_main():
     data = sys.stdin.read()
 
     if not data:
-        print 'Usage: ./get-tes.py < credentials.txt'
-        print '"credentials.txt" should be a username and password, on separate lines'
-        print 'It can also specify a work award, as a plain integer on a third line'
+        print('Usage: ./get-tes.py < credentials.txt')
+        print('"credentials.txt" should be a username and password, on separate lines')
+        print('It can also specify a work award, as a plain integer on a third line')
         sys.exit(1)
 
     parsed_data = data.split('\n')
@@ -328,10 +328,10 @@ def cli_main():
         work_award = int(parsed_data[2].strip() or 0)
 
     if not username or not password:
-        print 'Please provide both a username and a password'
+        print('Please provide both a username and a password')
         sys.exit(1)
 
-    print to_json(process_jobs(get_jobs(username, password), work_award))
+    print(to_json(process_jobs(get_jobs(username, password), work_award)))
 
 
 if __name__ == '__main__' and 'SERVER_SOFTWARE' in os.environ:
