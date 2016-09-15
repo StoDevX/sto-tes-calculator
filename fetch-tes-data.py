@@ -7,6 +7,12 @@ def print_err(*args, **kwargs):
 
 s = requests.Session()
 
+def check_all_same(iterator):
+   return len(set(iterator)) <= 1
+
+def flatten(iter):
+    return list([item for sub in iter for item in sub])
+
 def action(title):
     return 'https://www.stolaf.edu/apps/tes/index.cfm?fuseaction={}'.format(title)
 
@@ -54,10 +60,10 @@ def extract_timecard_entry_from_row_pair(row_pair):
     inputs_1 = row[1].select('input')
     inputs = inputs_0 + inputs_1
     if inputs:
-        entry_inputs = inputs_0[1:7] + inputs_1[1:7]
+        entry_inputs = inputs_0[1:7] + inputs_1
         entries = [el.get('value', '').strip() for el in entry_inputs]
     else:
-        entry_cells = row0_cells[1:7] + row1_cells[1:7]
+        entry_cells = row0_cells[1:7] + row1_cells
         entries = [cell.get_text().strip() for cell in entry_cells]
 
     paired_entries = list(zip(entries[0::2], entries[1::2]))
@@ -72,11 +78,13 @@ def is_entry_row(tr):
         # print_err('bad class')
         return False
     children = [e for e in tr.children if type(e) is bs4_element.Tag]
-    if len(children) != 8:
+    if len(children) != 8 and len(children) != 6:
         # print_err('wrong child count', len(children))
         return False
-    # TODO: i think this will fail to return the second row for the multi-row version
-    if 'nowrap' not in children[0].attrs:
+    if len(children) == 8 and 'nowrap' not in children[0].attrs and 'rowspan' not in children[0].attrs:
+        # print_err('not nowrap')
+        return False
+    if len(children) == 6 and not check_all_same(['inoutalign'] + flatten([el.attrs.get('class','') for el in children])):
         # print_err('not nowrap')
         return False
     return True
@@ -84,7 +92,7 @@ def is_entry_row(tr):
 
 def extract_timecard_entries_from_table(table):
     if not table:
-        return None
+        return []
 
     # make sure to check for tables with 6 in/out pairs
     # where the second set is in the subsequent row
@@ -93,9 +101,10 @@ def extract_timecard_entries_from_table(table):
     rows = [row for row in table.select('tr') if is_entry_row(row)]
 
     if not rows:
-        return None
+        return []
 
-    is_expanded_timesheet = False
+    children = [e for e in rows[0].children if type(e) is bs4_element.Tag]
+    is_expanded_timesheet = children[0].attrs.get('rowspan', None) is 2
     if is_expanded_timesheet:
         rows = zip(rows[0::2], rows[1::2])
         entries = [extract_timecard_entry_from_row_pair(pair) for pair in rows]
