@@ -32,7 +32,8 @@ def extract_timecard_entry_from_row(row):
 
     inputs = row.select('input')
     if inputs:
-        entries = [el['value'].strip() for el in inputs]
+        entry_inputs = inputs[1:7]
+        entries = [el.get('value', '').strip() for el in entry_inputs]
     else:
         entry_cells = cells[1:7]
         entries = [cell.get_text().strip() for cell in entry_cells]
@@ -53,7 +54,8 @@ def extract_timecard_entry_from_row_pair(row_pair):
     inputs_1 = row[1].select('input')
     inputs = inputs_0 + inputs_1
     if inputs:
-        entries = [el['value'].strip() for el in inputs]
+        entry_inputs = inputs_0[1:7] + inputs_1[1:7]
+        entries = [el.get('value', '').strip() for el in entry_inputs]
     else:
         entry_cells = row0_cells[1:7] + row1_cells[1:7]
         entries = [cell.get_text().strip() for cell in entry_cells]
@@ -126,25 +128,24 @@ def embed_timecard_details(job):
     return j
 
 
-def timecard_id_to_url(url):
+def timecard_url_to_id(url):
     # index.cfm?fuseaction=time.card&card=138071
     result = re.search(r'card=(\d+)', url)
     return result.group(1) if result else None
 
 
 def tablerow_to_timecard_summary(row):
-    columns = ['Pay Period', 'Total Hours', '<Blank>']
+    columns = ['Pay Period', 'Total Hours']
     cells = row.select('td')
     timecard = dict(zip(columns, cells))
 
     timecard_info_url = timecard['Pay Period'].find('a').attrs['href']
     timecard_period = timecard['Pay Period'].get_text().strip()
 
-    timecard['Id'] = timecard_id_to_url(timecard_info_url)
+    timecard['Id'] = timecard_url_to_id(timecard_info_url)
     timecard['Pay Period'] = timecard_period
 
     timecard['Total Hours'] = timecard['Total Hours'].get_text().strip()
-    timecard['<Blank>'] = str(timecard['<Blank>']).strip()
 
     return timecard
 
