@@ -2,13 +2,16 @@ from bs4 import BeautifulSoup as bs, element as bs4_element
 import requests
 import re, os, sys, json, copy
 
+def print_err(*args, **kwargs):
+    print(*args, **kwargs, file=sys.stderr)
+
 s = requests.Session()
 
 def action(title):
     return 'https://www.stolaf.edu/apps/tes/index.cfm?fuseaction={}'.format(title)
 
 def log_in(username, password):
-    print('logging in…')
+    print_err('logging in…')
     resp = s.post(action('login.processLogin'), data={
         'username': username,
         'password': password,
@@ -18,7 +21,7 @@ def log_in(username, password):
     })
 
     page = resp.text
-    print('logged in.')
+    print_err('logged in.')
     return 'To access this site, you need to login.' not in page
 
 
@@ -64,15 +67,15 @@ def extract_timecard_entry_from_row_pair(row_pair):
 
 def is_entry_row(tr):
     if 'class' in tr.attrs and tr.attrs['class'] == 'summaryrow':
-        # print('bad class')
+        # print_err('bad class')
         return False
     children = [e for e in tr.children if type(e) is bs4_element.Tag]
     if len(children) != 8:
-        # print('wrong child count', len(children))
+        # print_err('wrong child count', len(children))
         return False
     # TODO: i think this will fail to return the second row for the multi-row version
     if 'nowrap' not in children[0].attrs:
-        # print('not nowrap')
+        # print_err('not nowrap')
         return False
     return True
 
@@ -104,7 +107,7 @@ def print_timecard(card):
     return '{Id}: {Pay Period}, totaling {Total Hours} hour(s)'.format(**card)
 
 def get_timecard_details(timecard):
-    print('fetching timecard', print_timecard(timecard))
+    print_err('fetching timecard', print_timecard(timecard))
     resp = s.get(action('time.card&card={}'.format(timecard['Id'])))
     soup = bs(resp.text, 'lxml')
     tables = soup.select('.entry-content > form table')
@@ -116,7 +119,7 @@ def get_timecard_details(timecard):
 
 
 def embed_timecard_details(job):
-    print('fetching timecard details for', print_job(job))
+    print_err('fetching timecard details for', print_job(job))
     j = copy.deepcopy(job)
     for card in j['Timecards']:
         card['Hours'] = get_timecard_details(card)
@@ -157,7 +160,7 @@ def print_job(job):
     return '{Id}: "{Title}" from {Start} to {End} at {Rate}/hr, with {Supervisor}'.format(**job)
 
 def embed_timecard_summaries(job):
-    print('fetching timecard summaries for', print_job(job))
+    print_err('fetching timecard summaries for', print_job(job))
     resp = s.get(action('time.list&job={}'.format(job['Id'])))
     soup = bs(resp.text, 'lxml')
     tables = soup.select('.entry-content > table')
@@ -203,7 +206,7 @@ def extract_jobs_from_table(table, archived=False):
 
 
 def get_archived_jobs():
-    print('fetching archived jobs')
+    print_err('fetching archived jobs')
     resp = s.get(action('welcome.archive'))
     soup = bs(resp.text, 'lxml')
     tables = soup.select('#filtertable ~ table')
@@ -213,7 +216,7 @@ def get_archived_jobs():
 
 
 def get_jobs():
-    print('fetching jobs')
+    print_err('fetching jobs')
     resp = s.get(action('welcome.student'))
     soup = bs(resp.text, 'lxml')
     tables = soup.select('#filtertable ~ table')
